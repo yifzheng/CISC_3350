@@ -1,0 +1,4 @@
+Hello World!
+This is a text file used to test the my_cat.c file
+~
+Author: Yifeng Zheng
