@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                char *my_string = malloc(100 * sizeof(char));
+                char *my_string = malloc(100 * sizeof(char)); // allocate memory to cstring on heap
                 while (fgets(my_string, 100, my_file))
                 {
                     printf("%s", my_string);
