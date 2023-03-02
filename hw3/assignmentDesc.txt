@@ -1,0 +1,80 @@
+Write a C program, called my uniq.c
+here are the steps:
+a. ‘#include’ statements of necessary libraries, including stdio.h and stdlib.h,
+   the libraries that are needed by system calls you use in the program, and the
+   string.h library for manipulating char arrays.
+b. Define a constant that will carry the maximum length of a line that you allow
+   to be read in (pick a value from 400 to 1000, whatever you want.)
+c. main function:
+    1. Variable declaration:
+        I. Declare an ‘int’ that should hold the file descriptor (fd) of
+            the input file.
+        II. Declare an ‘int’ that should hold the file descriptor (fd) of
+             the output file.
+    2. Check what the number of command-line arguments is (you can use a ‘switch’:)
+        I. If it is 1:
+            1. Set the fd of the input file to the fd of keyboard (standard) input.
+                [What is this integer?]
+            2. Set the fd of the output file to the fd of terminal (standard) output.
+                [What is this integer?]
+        II. If it is 2:
+            1. The second command line argument is a filename or a - sign.
+            2. Set the fd of the input file to the result of the ‘open’ system call
+                on that filename OR, if the 2nd argument is ‘‘-’’, set it to the 
+fd of standard input. The ‘open’ syscall must create a file if it
+            does not exist, make it ‘write only’, and truncate the file to length
+            0 (erase everything old from it) if it does exist.
+            [What alternative syscall could you use here instead of ‘open’?]
+        3. Set the fd of the output file to the fd of terminal (standard) output.
+    III. If it is 3:
+        1. Each of the 2nd and 3rd arguments is a filename or a - sign.
+        2. Set the fd of the input file to the result of the ‘open’ system call
+            on the filename in the 2nd argument OR, if it is a ‘‘-’’, set it to
+            the fd of standard input.
+        3. Set the fd of the output file to the result of the ‘open’ system call
+            on the filename in the 3rd argument OR, if it is a ‘‘-’’, set it to
+            the fd of standard output. The ‘open’ syscall must create a file if it
+            does not exist, make it ‘write only’, and truncate the file to length
+            0 (erase everything old from it) if it does exist.
+            [What alternative syscall could you use here instead of ‘open’?]
+    IV. If it is 4 or more:
+        1. [If you included options, parse them properly.]
+        If you didn’t include options for extra credit:
+        2. Print an error message to the terminal (using the ‘perror’ method,)
+           saying that uniq cannot accept more than 3 arguments.
+        3. Return/Exit the program with EXIT_FAILURE.
+3. Now your program knows where to read from and where to write to.
+    I. Create 2 char arrays of the size you defined in your constant at the top.
+       [You’ll be comparing every 2 adjacent text lines, so you need 2 arrays.]
+       Create the arrays on the heap (using ‘malloc’). We call them ‘buffer1’
+       and ‘buffer2’.
+    II. Read-in the 1st line of text from your input into ‘buffer1’:
+        1. You must use the ‘read’ system call (don’t use getc, fgetc, fgets, etc.)
+        2. Decide if to read char by char or several chars at once.
+        3. Check if a newline character was read in. If so, you reached the end of the line.
+        3. Decide what to do if the line is longer than the allocated buffer:
+           maybe print an error and exit with EXIT_FAILURE.
+        4. Put a null character ‘\0’ to the right of the last read character
+            in the buffer to indicate where it’s over.
+    III. Write that 1st line that you read into the output (file or terminal):
+        1. You must use the ‘write’ system call.
+        2. Write a newline character after that line (if you didn’t already.)
+    IV. Read-in the 2nd line of text from your input into ‘buffer2’, in the
+         same manner as you did for the 1st line.
+    V. As long as ‘buffer2’ is not empty:
+        1. If the two buffers contain different strings (the lines are unique):
+           1. Write the content of ‘buffer2’ into the output.
+           2. After this if statement, you will read in another line of text and compare it to the string in ‘buffer2’. However, if you read
+                   a new line into ‘buffer2’, what is in ‘buffer2’ will be erased.
+                   What should you do with the char pointers to have the 1st
+                   pointer point at ‘buffer2’, and the 2nd pointer available for
+                   the new reading? Answer: swap the pointers!
+               3. There’s no ‘else’ or ‘else if’ statement after the ‘if’.
+            2. Read in the next line into ‘buffer2’.
+            3. Repeat until the ‘buffer2’ is empty (signifying we reached the
+                end of the file/input since no characters where read in!
+        VI. ‘close’ the files with which you worked (unless you worked with
+              standard input or standard output.)
+        VII. Free the 2 arrays that you created on the heap.
+    4. Return from the main function with EXIT_SUCCESS since if we reached
+        this point in the code, the execution of my_uniq.c was successful.
