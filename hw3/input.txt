@@ -6,6 +6,5 @@ hello
 hey
 hey
 
-
 what up
 how are you

@@ -4,13 +4,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define P_POINTER_SIZE 10
-#define CHAR_POINTER_SIZE 500
+#define P_POINTER_SIZE 1000
+#define CHAR_POINTER_SIZE 1000
 
 int _numberOfDelim(char *arr, char delim)
 {
     int count = 0;
-    while (*arr != '\0') 
+    while (*arr != '\0')
     {
         if (*arr == delim)
         {
@@ -55,7 +55,7 @@ char *_getString(char **arr)
         if (_isEmptyLine(*arr) == 1)
         {
             *arr += 1; // increment position
-            printf("Line 58=>The string to copy: new-line \n");
+            // printf("Line 58=>The string to copy: new-line \n");
             return "\n";
         }
         // find index of the first delimiter
@@ -68,7 +68,7 @@ char *_getString(char **arr)
             char *string = malloc(index * (sizeof(char)));
             // copy string from pointer to new pointer
             strncpy(string, *arr, index);
-            printf("Line 70=>The string to copy: %s\n", string);
+            //printf("Line 70=>The string to copy: %s\n", string);
             // increment argument pointer by index + 1 so the starting position of the next _getString() call isn't '\n'
             *arr += (index + 1);
             // printf("String length after copy: %d\n", strlen(*arr));
@@ -87,7 +87,7 @@ char *_getString(char **arr)
              {
                  printf("%c\n", string[i]);
              } */
-            printf("Line 85=>The string to copy: %s\n", string);
+            // printf("Line 85=>The string to copy: %s\n", string);
             // printf("After string copied: %s\n", string);
             *arr += (strlen(*arr) - 1);
             // printf("String length after copy: %d\n", strlen(*arr));
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
         break;
         // case 2: there is more than one argument other than the executable
     case 2:
-    // if the second argument is "-", then set the input descriptor vairable to the standard input FD
+        // if the second argument is "-", then set the input descriptor vairable to the standard input FD
         if (strcmp(argv[1], "-") == 0)
         {
             in_fd = STDIN_FILENO;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         // else set in_fd to the file descriptor returned from the open() command on the first argument
         else
         {
-            in_fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            in_fd = open(argv[1], O_RDONLY, 0644);
             // check for error opening file
             if (in_fd == -1)
             {
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         else
         {
             // else set in_fd to the file descriptor returned from the open() command on the first argument
-            in_fd = open(argv[1], O_RDONLY);
+            in_fd = open(argv[1], O_RDONLY, 0644);
             // check for error
             if (in_fd == -1)
             {
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
         }
         break;
     default:
-    // if there are more than 3 arguments
+        // if there are more than 3 arguments
         perror("Too many arguments");
         exit(EXIT_FAILURE);
     }
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     // using the _numberOfDelim() function, find the number of strings in buffer1 + 1 because the last string does no have '\n' but '\0'
     int numberOfStrings = _numberOfDelim(buffer1, '\n') + 1;
 
-    printf("Number of Strings: %d\n", numberOfStrings);
+    //printf("Number of Strings: %d\n", numberOfStrings);
 
     int num_lines = 0;
     // loop through the numberofString times and extract the string from the buffer
@@ -220,15 +220,15 @@ int main(int argc, char *argv[])
     }
     for (int i = 0; i < numberOfStrings; i++)
     {
-        //printf("Calling getString(%d): %s\n", i, lines[i]);
-        // if i is the last string, there is no next string to compare to
-        if(i != numberOfStrings - 1)
+        // printf("Calling getString(%d): %s\n", i, lines[i]);
+        //  if i is the last string, there is no next string to compare to
+        if (i != numberOfStrings - 1)
         {
             // printf("THE SAME: Lines[%d]: %s; Lines[%d]: %s\n", i, lines[i], i+1, lines[i+1]);
             // if the string values are the same and if i and i+1 are '\n' characters
-            if (strcmp(lines[i], lines[i + 1]) == 0 && (strcmp(lines[i], "\n") != 0 && strcmp(lines[i+1], "\n") != 0))
+            if (strcmp(lines[i], lines[i + 1]) == 0 && (strcmp(lines[i], "\n") != 0 && strcmp(lines[i + 1], "\n") != 0))
             {
-                printf("THE SAME: Lines[%d]: %s; Lines[%d]: %s\n", i, lines[i], i + 1, lines[i + 1]);
+                //printf("THE SAME: Lines[%d]: %s; Lines[%d]: %s\n", i, lines[i], i + 1, lines[i + 1]);
                 // since they are the same continue the loop until it find an index i+1 that isn't
                 // the same as i
                 continue;
@@ -236,15 +236,15 @@ int main(int argc, char *argv[])
             // lines[i] and lines[i+1] are not equal so we can write to the out_fd/output file
             else
             {
-                printf("The last iteration of duplication: lines[%d]: %s\n", i, lines[i]);
+                //printf("The last iteration of duplication: lines[%d]: %s\n", i, lines[i]);
                 // this i-th iteration is the last index in which the duplicate occurs
                 // if lines[i] is and '\n' character
                 if (strcmp(lines[i], "\n") != 0)
                 {
-                    printf("Lines[%d]: %s is not equal to new-line\n", i, lines[i]);
+                    //printf("Lines[%d]: %s is not equal to new-line\n", i, lines[i]);
                     // concat '\n' to it to maintain the empty line in read file
-                    char* string = strcat(lines[i], "\n");
-                    printf("String with new-line char conacted into it: %s", string);
+                    char *string = strcat(lines[i], "\n");
+                    //printf("String with new-line char conacted into it: %s", string);
                     int writeRes = write(out_fd, string, strlen(string));
                     if (writeRes < 0)
                     {
