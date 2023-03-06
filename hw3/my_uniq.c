@@ -133,8 +133,13 @@ int main(int argc, char *argv[])
             // check for error opening file
             if (in_fd == -1)
             {
-                perror("Error opening input file");
-                exit(EXIT_FAILURE);
+                // file does not exist so create it
+                in_fd = open(argv[1], O_CREAT | O_RDWR, 0666);
+                if (in_fd == -1)
+                {
+                    perror("Error opening input file");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
         // since this case only checks for the input, the output fd will always be the standard output fd
@@ -154,8 +159,13 @@ int main(int argc, char *argv[])
             // check for error
             if (in_fd == -1)
             {
-                perror("Error opening input file");
-                exit(EXIT_FAILURE);
+                // input file does not exist so create it
+                in_fd = open(argv[1], O_CREAT | O_RDWR, 0644);
+                if (in_fd == -1)
+                {
+                    perror("Error opening input file");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
         // check the third argument to see if it is "-", if true set the fd to the standard output fd
