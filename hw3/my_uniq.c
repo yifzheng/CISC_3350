@@ -104,12 +104,56 @@ char *_getString(char **arr)
     return NULL;
 }
 
+// function to find the length of file to assign the maximum size of the buffer
+
+int lengthOfFile(char *filePointer)
+{
+    // declare variables
+    int fd, n;
+    char buffer[1024];
+    int length = 0;
+
+    // open file for reading
+    fd = open(filePointer, O_RDONLY);
+    // check for errors
+    if (fd == -1)
+    {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    // Read file in chuncks until the end of the file
+    while ((n = read(fd, buffer, sizeof(buffer))) > 0)
+    {
+        length += n;
+    }
+    // Check for errors
+    if (n == -1)
+    {
+        perror("read");
+        exit(1);
+    }
+
+    // Close the file
+    if (close(fd) == -1)
+    {
+        perror("close");
+        exit(1);
+    }
+
+    return length;
+}
+
 int main(int argc, char *argv[])
 {
     // file descriptors for input and output
     int in_fd, out_fd;
+    // length of file
+    int fileLen;
+    // buffers
     // lines has a pointer to some block of memory that that stores [10| ANY NUMBER] of pointers to characters
-    char **lines = malloc(P_POINTER_SIZE * (sizeof(char *)));
+    char **lines;
+    char *buffer1;
     // switch statement to check the number of arguments in the command line
     switch (argc)
     {
@@ -141,6 +185,7 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
             }
+            fileLen = lengthOfFile(argv[1]);
         }
         // since this case only checks for the input, the output fd will always be the standard output fd
         out_fd = STDOUT_FILENO;
@@ -167,6 +212,7 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
             }
+            fileLen = lengthOfFile(argv[1]);
         }
         // check the third argument to see if it is "-", if true set the fd to the standard output fd
         if (strcmp(argv[2], "-") == 0)
@@ -192,8 +238,18 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    // allocate memory buffer on heap to read the file from in_fd
-    char *buffer1 = (char *)calloc(CHAR_POINTER_SIZE, sizeof(char)); // read the input file
+    if (fileLen > CHAR_POINTER_SIZE)
+    {
+        lines = malloc((fileLen * 2) * (sizeof(char *)));
+        // allocate memory buffer on heap to read the file from in_fd
+        buffer1 = (char *)calloc((fileLen * 2), sizeof(char)); // read the input file
+    }
+    else
+    {
+        lines = malloc(P_POINTER_SIZE * (sizeof(char *)));
+        // allocate memory buffer on heap to read the file from in_fd
+        buffer1 = (char *)calloc(CHAR_POINTER_SIZE, sizeof(char)); // read the input file
+    }
 
     // check if we successfully allocated memory to buffer1
     if (buffer1 == NULL)
