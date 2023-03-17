@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #define MAX_LINE_LENGTH 500
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
             // set to standard input
             infile = STDIN_FILENO;
         }
+        // there are no more delimiters in the char pointer so you're left with the last string to return
         else
         {
             // set to open()

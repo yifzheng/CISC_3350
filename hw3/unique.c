@@ -14,7 +14,7 @@ int _numberOfDelim(char *arr, char delim)
     int count = 0;
     while (*arr != '\0')
     {
-        if (*arr == '\n')
+        if (*arr == delim)
         {
             count++;
         }
@@ -106,7 +106,9 @@ int main()
     int numberOfStrings = _numberOfDelim(buffer1, '\n') + 1;
     for (int i = 0; i < numberOfStrings; i++)
     {
+        // retrieves the string from the buffer
         char *subStr = _getString(&buffer1);
+        // find the length of the retrieved string
         int lenOfSubStr = strlen(subStr);
         ptr_to_strings[i] = malloc(lenOfSubStr * (sizeof(char))); // allocate size for the char pointer
         strcpy(ptr_to_strings[i], subStr);

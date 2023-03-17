@@ -1,6 +1,15 @@
 Hello
 Hello
+<<<<<<< HEAD
 hey
 hey
+=======
+Hello
+hello
+
+hey
+hey
+
+>>>>>>> b5ee233dbf1f175d103f2cc35bf515fd0e13af0e
 what up
 how are you
