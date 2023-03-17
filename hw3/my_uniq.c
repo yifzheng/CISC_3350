@@ -1,170 +1,220 @@
-
-// C program to illustrate
-// read system Call
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
 
-#define P_POINTER_SIZE 10
-#define CHAR_POINTER_SIZE 100
+#define MAX_LINE_LENGTH 500
 
-int _numberOfDelim(char *arr, char delim)
+/*
+Function take two arguments and return integer value depending on success of function. Success returns 1 and failure returns 0.
+input=> int: file descriptor, char: pointer
+output=> int: 1 | int: 0
+With the two values, the function will call read() on the file descriptor one character at a time until it reads
+a new-line character. One we read a new line character, we have stored an entire line from the input file into
+the buffer so we return 1. If there are any errors in reading, we return the error and exit with 0
+*/
+int readLine(int fd, char *buffer)
 {
-    int count = 0;
-    while (*arr != '\0')
+    char *buf1 = buffer;             // assign char pointer value of buffer
+    ssize_t ret;                     // stores the return value from read()
+    short max = MAX_LINE_LENGTH - 1; // short variable for reading 1 less than MAX_LINE_LENGTH
+    ret = read(fd, buf1, 1);         // read 1 character from the fd
+    // while the current character in buffer is not new-line char and ret != 0 meaning EOF
+    while (*buf1 != '\n' && ret != 0)
     {
-        if (*arr == '\n')
+        if (ret == -1)
         {
-            count++;
+            perror("read"); // error type
+            return 0;       // return 0 for error
         }
-        arr++;
-    }
-    return count;
-}
-
-// finds the index of the delimiter which is '\n'
-int _indexOf(char *arr, char delim)
-{
-
-    int instance = 0;
-    // while the value of the current position in pointer != new line and length of cstring isn't 1 or '\0'
-    while (*arr != delim && (strlen(arr) > 0))
-    {
-        arr++;
-        instance++;
-    }
-    if (instance > 0 && (strlen(arr) > 0))
-    {
-        return instance;
-    }
-    return -1;
-}
-
-int _isEmptyLine(char *arr)
-{
-    return *arr == '\n' ? 1 : -1;
-}
-
-// retriees the cstring from the character pointer until the index of the delimiter
-// need to pass character pointer as _getString(&char* POINTER)
-char *_getString(char **arr)
-{
-    // printf("Initial length of string: %d\n", strlen(*arr));
-    // if there is something pointing to the memory oter than '\0';
-    if (strlen(*arr) != 1)
-    {
-        if (_isEmptyLine(*arr) == 1)
+        // no more space to read from file
+        if (max == 0)
         {
-            *arr += 1; // increment position
-            return "\n";
+            int rVal = write(STDERR_FILENO, "Error: Line length exceeded maximum.\n", strlen("Error: Line length exceeded maximum.\n"));
+            // check for error writing error message
+            if (rVal == -1)
+            {
+                perror("write");
+                return 0;
+            }
+            return 0; // return function for error
         }
-        // find index of the first delimiter
-        int index = _indexOf(*arr, '\n');
-        // printf("Index after delimiter search: %d\n", index);
-        // if the delimiter exists in the char pointer
-        if (index != -1)
+        max--;                   // decrement max
+        buf1++;                  // increment buffer pointer value
+        ret = read(fd, buf1, 1); // read the next character from file
+    }
+
+    buf1[0] = '\0';
+
+    return 1; // successfully written one line into buffer
+}
+/*
+Function writes a new line into output file
+*/
+void newLine(int fd)
+{
+    if (write(fd, "\n", 1) < 0)
+    {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
+}
+/*
+Function to swap two pointers
+*/
+void swap(char **buf1, char **buf2)
+{
+    char *temp = *buf1;
+    *buf1 = *buf2;
+    *buf2 = temp;
+}
+
+// Main function
+int main(int argc, char *argv[])
+{
+    int infile, outfile; // input and output file
+    // check how many arguments there are
+    switch (argc)
+    {
+    case 1:
+        // read from standard input
+        infile = STDIN_FILENO;
+        // write to standard output
+        outfile = STDOUT_FILENO;
+        break;
+    case 2:
+        if (strcmp(argv[1], "-") == 0)
         {
-            // allocate the size of the char pointer to the size of index of the delimiter
-            char *string = malloc(index * (sizeof(char)));
-            // copy string from pointer to new pointer
-            strncpy(string, *arr, index);
-            // increment argument pointer by index + 1 so the starting position of the next _getString() call isn't '\n'
-            *arr += (index + 1);
-            // printf("String length after copy: %d\n", strlen(*arr));
-            // return new cstring
-            return string;
-            // free memory
-            free(string);
+            // set file innput to standard input
+            infile = STDIN_FILENO;
         }
         else
         {
-            // printf("Final get String, index was -1, length of string: %d\n", strlen(*arr));
-            char *string = malloc(strlen(*arr) * sizeof(char));
-            // printf("Allocated last string\n");
-            strncpy(string, *arr, strlen(*arr));
-            // printf("After string copied: %s\n", string);
-            *arr += (strlen(*arr) - 1);
-            // printf("String length after copy: %d\n", strlen(*arr));
-            return string;
-            free(string);
+            // set file input to second argument
+            infile = open(argv[1], O_RDONLY);
+            // check for error
+            if (infile == -1)
+            {
+                perror("open");
+                exit(EXIT_FAILURE);
+            }
         }
-    }
-    return NULL;
-}
-
-int main()
-{
-    int fd, sz; // file directory and read file value
-    char *buffer1 = (char *)calloc(CHAR_POINTER_SIZE, sizeof(char));
-    char **ptr_to_strings = malloc(P_POINTER_SIZE * (sizeof(char *))); // ptr_to_strings has a pointer to some block of memory that that stores [10| ANY NUMBER] of pointers to characters
-
-    fd = open("foo.txt", O_RDWR);
-    if (fd < 0)
-    {
-        perror("r1");
-        exit(1);
-    }
-    // read from fd returned from open() into buffer1 with size of CHAR_POINTER_SIZE
-    sz = read(fd, buffer1, CHAR_POINTER_SIZE);
-    /* printf("called read(% d, c, 10). returned that"
-           " %d bytes were read.\n",
-           fd, sz); */
-    buffer1[sz] = '\0'; // make the last index of C-string null or '\0'
-    close(fd);          // close file directory or free the value on file directory table
-    int numberOfStrings = _numberOfDelim(buffer1, '\n') + 1;
-    for (int i = 0; i < numberOfStrings; i++)
-    {
-        char *subStr = _getString(&buffer1);
-        int lenOfSubStr = strlen(subStr);
-        // printf("Inside for loop, iteration: %d; String = %s; Length of substring is %d\n", i, subStr, strlen(subStr));
-        ptr_to_strings[i] = malloc(lenOfSubStr * (sizeof(char))); // allocate size for the char pointer
-        // printf("Allocated memory to pointer\n");
-        strcpy(ptr_to_strings[i], subStr);
-        // printf("Value in ptr_to_strings[%d]: %s\n", i, ptr_to_strings[i]);
-        // printf("Bottom of for loop\n");
-    }
-
-    // printf("\nThose bytes are as follows: \n% s", c);
-    int fd2 = open("output.txt", O_RDWR | O_CREAT);
-    if (fd2 < 0)
-    {
-        perror("r1");
-        return EXIT_FAILURE;
-    }
-
-    for (int i = 0; i < numberOfStrings; i++)
-    {
-        //printf("Number of strings: %d -> string[%d] = %s; length of string: %d\n", numberOfStrings, i, ptr_to_strings[i], strlen(ptr_to_strings[i]));
-        // if i is the last string, there is no next string to compare to
-        if (i != numberOfStrings - 1)
+        // set outfile to standard output
+        outfile = STDOUT_FILENO;
+        break;
+    case 3:
+        if (strcmp(argv[1], "-") == 0)
         {
-            if (strcmp(ptr_to_strings[i], ptr_to_strings[i + 1]) == 0) // if the string values are the same
-            {
-                //printf("string[%d] = %s | string[%d] = %s\n", i, ptr_to_strings[i], i + 1, ptr_to_strings[i + 1]);
-                continue; // continue the for loop for i+1
-            }
-            else
-            {
-                // this ith iteration is the last index in which this string occurs so there is no duplicate next iteration
-                if (strcmp(ptr_to_strings[i], "\n")) // if this is a new line char '\n'
-                {
-                    // concat '\n' to it to maintain the empty line in read file
-                    write(fd2, strcat(ptr_to_strings[i], "\n"), strlen(ptr_to_strings[i]) + 1); 
-                }
-                else
-                {
-                    // else write as is
-                    write(fd2, ptr_to_strings[i], strlen(ptr_to_strings[i]));
-                }
-                
-            }
+            // set to standard input
+            infile = STDIN_FILENO;
         }
         else
         {
-            write(fd2, ptr_to_strings[i], strlen(ptr_to_strings[i]));
+            // set to open()
+            infile = open(argv[1], O_RDONLY);
+            // check for error
+            if (infile == -1)
+            {
+                perror("open");
+                exit(EXIT_FAILURE);
+            }
+        }
+        if (strcmp(argv[2], "-") == 0)
+        {
+            // set to standard output
+            outfile = STDOUT_FILENO;
+        }
+        else
+        {
+            outfile = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            // check for error
+            if (outfile == -1)
+            {
+                perror("open");
+                exit(EXIT_FAILURE);
+            }
+        }
+        break;
+    default:
+        // default: more than 4 arguments
+        if (write(STDERR_FILENO, "Error: Too many arguments.\n", strlen("Error: Too many arguments.\n") == -1))
+        {
+            perror("write");
+            exit(EXIT_FAILURE);
+        }
+        break;
+    }
+
+    // buffer1
+    char *buffer1 = malloc(MAX_LINE_LENGTH * sizeof(char));
+    char *buffer2 = malloc(MAX_LINE_LENGTH * sizeof(char));
+
+    if (buffer1 == NULL || buffer2 == NULL)
+    {
+        perror("Memory allocation error");
+        exit(EXIT_FAILURE);
+    }
+
+    int returnValue = readLine(infile, buffer1);
+    // check for read error
+    if (returnValue == 0)
+    {
+        perror("readLine() error");
+        exit(EXIT_FAILURE);
+    }
+
+    // write buffer1 to output file
+    int writeRet = write(outfile, buffer1, strlen(buffer1));
+    if (writeRet == -1)
+    {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
+    newLine(outfile); // add new line to file
+    // read into buffer2
+    int retVal2 = readLine(infile, buffer2);
+    if (retVal2 == 0)
+    {
+        perror("readLine() error");
+        exit(EXIT_FAILURE);
+    }
+
+    // while buffer2 is not empty
+    while (strlen(buffer2) > 0)
+    {
+        // if the two strings are not equal
+        if (strcmp(buffer1, buffer2) != 0)
+        {
+            // write to output
+            int wrRetVal = write(outfile, buffer2, strlen(buffer2));
+            if (wrRetVal < 0)
+            {
+                perror("write");
+                exit(EXIT_FAILURE);
+            }
+            newLine(outfile); // add new line to file
+            // swap pointer values
+            swap(&buffer1, &buffer2);
+        }
+        // read next line into buffer2
+        retVal2 = readLine(infile, buffer2);
+        if (retVal2 == -1)
+        {
+            // if equal -1, on last line and set buffer2 to empty character
+            strcpy(buffer2, "\0");
+        }
+        // check if there is an error reading: exceed_buffer_length error or reading
+        else if (retVal2 == 0)
+        {
+            exit(EXIT_FAILURE);
         }
     }
-    close(fd2);
+    // free all resources and close file descriptors
+    close(infile);
+    close(outfile);
+    free(buffer1);
+    free(buffer2);
+
     return EXIT_SUCCESS;
 }
